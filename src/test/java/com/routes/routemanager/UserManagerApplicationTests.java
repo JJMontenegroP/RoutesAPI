@@ -1,4 +1,4 @@
-package com.project202411.journeyManager;
+package com.routes.routemanager;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;

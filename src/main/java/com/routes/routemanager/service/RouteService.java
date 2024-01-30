@@ -1,7 +1,7 @@
-package com.project202411.journeyManager.service;
+package com.routes.routemanager.service;
 
-import com.project202411.journeyManager.model.Journey;
-import com.project202411.journeyManager.repository.JourneyRepository;
+import com.routes.routemanager.model.Route;
+import com.routes.routemanager.repository.RouteRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -13,21 +13,20 @@ import java.util.List;
 import java.util.UUID;
 
 @Service
-public class JourneyService {
+public class RouteService {
 
-    private final JourneyRepository journeyRepository;
+    private final RouteRepository journeyRepository;
 
     @Autowired
-    public JourneyService(JourneyRepository journeyRepository) {
+    public RouteService(RouteRepository journeyRepository) {
         this.journeyRepository = journeyRepository;
     }
 
     @Transactional
-    public Journey createJourney(Journey journey) {
+    public Route createJourney(Route journey) {
         try {
             // Validate date formats
-            if (!isValidDateTime(journey.getPlannedStartDate().toString()) ||
-                    !isValidDateTime(journey.getPlannedEndDate().toString())) {
+            if (isValidDateTime(journey.getPlannedStartDate().toString()) || isValidDateTime(journey.getPlannedEndDate().toString())) {
                 throw new IllegalArgumentException("Invalid date format");
             }
 
@@ -48,9 +47,9 @@ public class JourneyService {
         try {
             DateTimeFormatter formatter = DateTimeFormatter.ISO_LOCAL_DATE_TIME;
             LocalDateTime.parse(dateTimeString, formatter);
-            return true;
-        } catch (DateTimeParseException e) {
             return false;
+        } catch (DateTimeParseException e) {
+            return true;
         }
     }
 
@@ -58,16 +57,15 @@ public class JourneyService {
         return journeyRepository.existsByFlightId(flightId);
     }
 
-    public List<Journey> getJourneysByFlightId(String flightId) {
+    public List<Route> getJourneysByFlightId(String flightId) {
         return journeyRepository.findByFlightId(flightId);
     }
 
-    public List<Journey> getAllJourneys() {
+    public List<Route> getAllJourneys() {
         return journeyRepository.findAll();
     }
 
-    public Journey getJourneyById(UUID id) {
-        System.err.println("id: " + id);
+    public Route getJourneyById(UUID id) {
         if (id == null) {
             return null; // or throw an IllegalArgumentException
         }

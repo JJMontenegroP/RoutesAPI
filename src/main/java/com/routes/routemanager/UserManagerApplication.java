@@ -1,9 +1,7 @@
-package com.project202411.journeyManager;
+package com.routes.routemanager;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-
-import java.util.UUID;
 
 @SpringBootApplication
 public class UserManagerApplication {

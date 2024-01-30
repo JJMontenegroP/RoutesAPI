@@ -1,15 +1,13 @@
-package com.project202411.journeyManager.controller;
+package com.routes.routemanager.controller;
 
 
-import com.project202411.journeyManager.loader.AirportCodeLoader;
-import com.project202411.journeyManager.model.Journey;
-import com.project202411.journeyManager.model.JourneyResponse;
-import com.project202411.journeyManager.service.JourneyService;
+import com.routes.routemanager.loader.AirportCodeLoader;
+import com.routes.routemanager.model.Route;
+import com.routes.routemanager.model.RouteResponse;
+import com.routes.routemanager.service.RouteService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import javax.transaction.Transactional;
@@ -20,54 +18,45 @@ import java.util.UUID;
 
 @RestController
 @RequestMapping()
-public class JourneyController {
+public class RouteController {
 
-    private final JourneyService journeyService;
+    private final RouteService routeService;
 
 
     @Autowired
-    public JourneyController(JourneyService journeyService) {
-        this.journeyService = journeyService;
+    public RouteController(RouteService routeService, AirportCodeLoader airportCodeLoader) {
+        this.routeService = routeService;
+        this.airportCodeLoader = airportCodeLoader;
     }
 
-    @Autowired
-    private AirportCodeLoader airportCodeLoader;
+    private final AirportCodeLoader airportCodeLoader;
 
     // Crea un trayecto con los datos brindados, solo un usuario autorizado puede realizar esta operación.
 
     @PostMapping("/routes")
-    public ResponseEntity<?> createJourney(@RequestHeader(HttpHeaders.AUTHORIZATION) String authorizationHeader, @RequestBody Journey journey) {
+    public ResponseEntity<?> createJourney(@RequestBody Route route) {
 
         // Validar la presencia de todos los campos necesarios
-        if (journey.getFlightId() == null ||
-                journey.getSourceAirportCode() == null ||
-                journey.getSourceCountry() == null ||
-                journey.getDestinyAirportCode() == null ||
-                journey.getDestinyCountry() == null ||
-                journey.getBagCost() == null ||
-                journey.getPlannedStartDate() == null ||
-                journey.getPlannedEndDate() == null) {
-            return ResponseEntity.badRequest().build();
+        ResponseEntity<?> missingFieldsResponse = validateRequiredFields(route);
+        if (missingFieldsResponse != null) {
+            return missingFieldsResponse;
         }
 
         // Validar que los códigos de aeropuerto sean válidos
-        if (isValidAirportCode(journey.getSourceAirportCode()) ||
-                isValidAirportCode(journey.getDestinyAirportCode())) {
+        if (isValidAirportCode(route.getSourceAirportCode()) || isValidAirportCode(route.getDestinyAirportCode())) {
             return ResponseEntity.badRequest().body("{\"msg\": \"Código de aeropuerto inválido\"}");
         }
         try {
             // Validar si el flightId ya existe
-            if (journeyService.isFlightIdExists(journey.getFlightId())) {
-                return ResponseEntity.status(HttpStatus.PRECONDITION_FAILED)
-                        .build();
+            if (routeService.isFlightIdExists(route.getFlightId())) {
+                return ResponseEntity.status(HttpStatus.PRECONDITION_FAILED).build();
             }
 
-            Journey createdJourney = journeyService.createJourney(journey);
-            JourneyResponse journeyResponse = new JourneyResponse(createdJourney.getId(), createdJourney.getCreatedAt());
-            return new ResponseEntity<>(journeyResponse, HttpStatus.CREATED);
+            Route createdJourney = routeService.createJourney(route);
+            RouteResponse routeResponse = new RouteResponse(createdJourney.getId(), createdJourney.getCreatedAt());
+            return new ResponseEntity<>(routeResponse, HttpStatus.CREATED);
         } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(HttpStatus.PRECONDITION_FAILED)
-                    .body("{\"msg\": \"Las fechas del trayecto no son válidas\"}");
+            return ResponseEntity.status(HttpStatus.PRECONDITION_FAILED).body("{\"msg\": \"Las fechas del trayecto no son válidas\"}");
         }
     }
 
@@ -78,12 +67,12 @@ public class JourneyController {
         try {
             // Si se proporciona el parámetro flightId, buscar trayectos por ese id
             if (flightId != null && !flightId.isEmpty()) {
-                List<Journey> journey = journeyService.getJourneysByFlightId(flightId);
-                return ResponseEntity.ok(journey);
+                List<Route> route = routeService.getJourneysByFlightId(flightId);
+                return ResponseEntity.ok(route);
             } else {
                 // Si no se proporciona el parámetro flightId, retornar todos los trayectos
-                List<Journey> journeys = journeyService.getAllJourneys();
-                return ResponseEntity.ok(journeys);
+                List<Route> routes = routeService.getAllJourneys();
+                return ResponseEntity.ok(routes);
             }
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().build();
@@ -95,9 +84,9 @@ public class JourneyController {
     public ResponseEntity<?> getJourneyById(@PathVariable String id) {
         try {
             UUID uuid = UUID.fromString(id); // Attempt to convert the string to UUID
-            Journey journey = journeyService.getJourneyById(uuid);
-            if (journey != null) {
-                return ResponseEntity.ok(journey);
+            Route route = routeService.getJourneyById(uuid);
+            if (route != null) {
+                return ResponseEntity.ok(route);
             } else {
                 return ResponseEntity.notFound().build();
             }
@@ -116,8 +105,8 @@ public class JourneyController {
             UUID uuid = UUID.fromString(id); // Intenta convertir la cadena a UUID
 
             // Verifica si el trayecto existe antes de intentar eliminarlo
-            if (journeyService.existsById(uuid)) {
-                boolean deleted = journeyService.deleteJourneyById(uuid);
+            if (routeService.existsById(uuid)) {
+                boolean deleted = routeService.deleteJourneyById(uuid);
                 if (deleted) {
                     return ResponseEntity.ok().body("{\"msg\": \"el trayecto fue eliminado\"}"); // Retorna 204 No Content si se eliminó con éxito
                 } else {
@@ -145,8 +134,18 @@ public class JourneyController {
     @PostMapping("/routes/reset")
     @Transactional
     public ResponseEntity<String> resetDatabase() {
-        journeyService.resetDatabase();
+        routeService.resetDatabase();
         return ResponseEntity.ok("{\"msg\": \"Todos los datos fueron eliminados\"}");
+    }
+
+    /******************************* Validations ********************************************/
+
+    // Método para validar la presencia de todos los campos necesarios
+    private ResponseEntity<?> validateRequiredFields(Route route) {
+        if (route.getFlightId() == null || route.getSourceAirportCode() == null || route.getSourceCountry() == null || route.getDestinyAirportCode() == null || route.getDestinyCountry() == null || route.getBagCost() == null || route.getPlannedStartDate() == null || route.getPlannedEndDate() == null) {
+            return ResponseEntity.badRequest().build();
+        }
+        return null; // Indicates all required fields are present
     }
 
     // Método para validar códigos de aeropuerto

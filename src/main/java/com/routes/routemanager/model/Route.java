@@ -1,4 +1,4 @@
-package com.project202411.journeyManager.model;
+package com.routes.routemanager.model;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -17,14 +17,11 @@ import java.time.ZonedDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Table(name = "journey")
-public class Journey {
+public class Route {
 
     @Id
     @GeneratedValue(generator = "UUID")
-    @GenericGenerator(
-            name = "UUID",
-            strategy = "org.hibernate.id.UUIDGenerator"
-    )
+    @GenericGenerator(name = "UUID", strategy = "org.hibernate.id.UUIDGenerator")
     @Column(name = "id", nullable = false, unique = true)
     private String id;
 
@@ -78,18 +75,6 @@ public class Journey {
 
     @Override
     public String toString() {
-        return "Journey{" +
-                "id='" + id + '\'' +
-                ", flightId='" + flightId + '\'' +
-                ", sourceAirportCode='" + sourceAirportCode + '\'' +
-                ", sourceCountry='" + sourceCountry + '\'' +
-                ", destinyAirportCode='" + destinyAirportCode + '\'' +
-                ", destinyCountry='" + destinyCountry + '\'' +
-                ", bagCost=" + bagCost +
-                ", plannedStartDate=" + plannedStartDate +
-                ", plannedEndDate=" + plannedEndDate +
-                ", createdAt=" + createdAt +
-                ", updatedAt=" + updatedAt +
-                '}';
+        return "Route{" + "id='" + id + '\'' + ", flightId='" + flightId + '\'' + ", sourceAirportCode='" + sourceAirportCode + '\'' + ", sourceCountry='" + sourceCountry + '\'' + ", destinyAirportCode='" + destinyAirportCode + '\'' + ", destinyCountry='" + destinyCountry + '\'' + ", bagCost=" + bagCost + ", plannedStartDate=" + plannedStartDate + ", plannedEndDate=" + plannedEndDate + ", createdAt=" + createdAt + ", updatedAt=" + updatedAt + '}';
     }
 }

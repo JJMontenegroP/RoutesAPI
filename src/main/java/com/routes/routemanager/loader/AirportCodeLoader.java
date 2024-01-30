@@ -1,4 +1,4 @@
-package com.project202411.journeyManager.loader;
+package com.routes.routemanager.loader;
 
 import lombok.Getter;
 import org.springframework.beans.factory.annotation.Value;
