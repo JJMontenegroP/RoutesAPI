@@ -6,7 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
-import java.time.LocalDateTime;
+import java.time.*;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.List;
@@ -29,10 +29,13 @@ public class RouteService {
             if (isValidDateTime(journey.getPlannedStartDate().toString()) || isValidDateTime(journey.getPlannedEndDate().toString())) {
                 throw new IllegalArgumentException("Invalid date format");
             }
-
             // Ensure start date is before end date
             if (journey.getPlannedStartDate().isAfter(journey.getPlannedEndDate())) {
                 throw new IllegalArgumentException("Start date must be before end date");
+            }
+
+            if (journey.getPlannedStartDate().isBefore(Instant.now()) || journey.getPlannedEndDate().isBefore(Instant.now())) {
+                throw new IllegalArgumentException("Start date must be after current date");
             }
 
             journeyRepository.save(journey);
@@ -43,26 +46,20 @@ public class RouteService {
     }
 
     // Method to validate date-time format
-    private boolean isValidDateTime(String dateTimeString) {
+    private static final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS");
+
+    public static boolean isValidDateTime(String dateTimeString) {
         try {
-            DateTimeFormatter formatter = DateTimeFormatter.ISO_LOCAL_DATE_TIME;
-            LocalDateTime.parse(dateTimeString, formatter);
-            return false;
+            LocalDateTime dateTime = LocalDateTime.parse(dateTimeString, formatter);
+            LocalDateTime currentUTC = LocalDateTime.now(ZoneOffset.UTC);
+            return !dateTime.isBefore(currentUTC);
         } catch (DateTimeParseException e) {
-            return true;
+            return false; // Invalid format
         }
     }
 
     public boolean isFlightIdExists(String flightId) {
         return journeyRepository.existsByFlightId(flightId);
-    }
-
-    public List<Route> getJourneysByFlightId(String flightId) {
-        return journeyRepository.findByFlightId(flightId);
-    }
-
-    public List<Route> getAllJourneys() {
-        return journeyRepository.findAll();
     }
 
     public Route getJourneyById(UUID id) {
@@ -89,5 +86,13 @@ public class RouteService {
             return false;
         }
         return journeyRepository.existsById(uuid.toString());
+    }
+
+    public List<Route> getRoutesByFlightId(String flightId) {
+        return journeyRepository.findByFlightId(flightId);
+    }
+
+    public List<Route> getAllRoutes() {
+        return journeyRepository.findAll();
     }
 }

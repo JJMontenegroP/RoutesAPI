@@ -63,15 +63,16 @@ public class RouteController {
     // Retorna todos los trayectos o aquellos que corresponden a los parámetros de búsqueda. Solo un usuario autorizado puede realizar esta operación.
 
     @GetMapping("/routes")
-    public ResponseEntity<?> getJourneys(@RequestParam(required = false) String flightId) {
+    public ResponseEntity<?> getJourneys(@RequestParam(required = false) String flight) {
+        System.err.println("flightId: " + flight);
         try {
             // Si se proporciona el parámetro flightId, buscar trayectos por ese id
-            if (flightId != null && !flightId.isEmpty()) {
-                List<Route> route = routeService.getJourneysByFlightId(flightId);
-                return ResponseEntity.ok(route);
+            if (flight != null && !flight.isEmpty()) {
+                List<Route> routes = routeService.getRoutesByFlightId(flight);
+                return ResponseEntity.ok(routes);
             } else {
                 // Si no se proporciona el parámetro flightId, retornar todos los trayectos
-                List<Route> routes = routeService.getAllJourneys();
+                List<Route> routes = routeService.getAllRoutes();
                 return ResponseEntity.ok(routes);
             }
         } catch (IllegalArgumentException e) {
@@ -80,10 +81,10 @@ public class RouteController {
     }
 
     // Retorna un trayecto, solo un usuario autorizado puede realizar esta operación.
-    @GetMapping("/routes/{id}")
-    public ResponseEntity<?> getJourneyById(@PathVariable String id) {
+    @GetMapping("/routes/{routeId}")
+    public ResponseEntity<?> getJourneyById(@PathVariable String routeId) {
         try {
-            UUID uuid = UUID.fromString(id); // Attempt to convert the string to UUID
+            UUID uuid = UUID.fromString(routeId); // Attempt to convert the string to UUID
             Route route = routeService.getJourneyById(uuid);
             if (route != null) {
                 return ResponseEntity.ok(route);

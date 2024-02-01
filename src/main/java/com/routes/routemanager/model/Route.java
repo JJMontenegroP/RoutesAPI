@@ -7,6 +7,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.annotations.GenericGenerator;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
@@ -44,10 +45,10 @@ public class Route {
     private Integer bagCost;
 
     @Column(name = "bag_weight", nullable = false)
-    private LocalDateTime plannedStartDate;
+    private Instant plannedStartDate;
 
     @Column(name = "planned_end_date", nullable = false)
-    private LocalDateTime plannedEndDate;
+    private Instant plannedEndDate;
 
     @Column(name = "created_at")
     private LocalDateTime createdAt;
