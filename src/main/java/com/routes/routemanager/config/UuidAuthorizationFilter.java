@@ -27,20 +27,22 @@ public class UuidAuthorizationFilter extends OncePerRequestFilter {
 
         if (authorizationHeader == null) {
             handleNoAuthorizationHeader(response);
+            filterChain.doFilter(request, response);
             return;
         }
 
-        System.err.println("Authorization header found: " + authorizationHeader);
+        System.out.println("Authorization header found: " + authorizationHeader);
 
         try {
             String token = authorizationHeader.substring(BEARER_PREFIX.length());
+            HttpStatusCode statusCode = isValidToken(token);
 
             // Validate the token by calling the user me endpoint
-            if (isValidToken(token) || token.equals("{{token}}")) {
+            if (statusCode == HttpStatus.OK || token.equals("{{token}}")) {
                 SecurityContextHolder.getContext().setAuthentication(createAuthentication());
                 filterChain.doFilter(request, response);
             } else {
-                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                response.setStatus(statusCode.value());
             }
         } catch (NullPointerException e) {
             System.err.println("Error processing authorization header: " + e.getMessage());
@@ -53,7 +55,7 @@ public class UuidAuthorizationFilter extends OncePerRequestFilter {
         response.setStatus(HttpServletResponse.SC_FORBIDDEN);
     }
 
-    private boolean isValidToken(String token) {
+    private HttpStatusCode isValidToken(String token) {
         try {
             RestTemplate restTemplate = new RestTemplate();
             HttpHeaders headers = new HttpHeaders();
@@ -62,15 +64,9 @@ public class UuidAuthorizationFilter extends OncePerRequestFilter {
             ResponseEntity<String> response = restTemplate.exchange(USER_ME_ENDPOINT, HttpMethod.GET, entity, String.class);
             String responseBody = response.getBody();
             System.out.println("Response Body: " + responseBody);
-            return true;
+            return response.getStatusCode();
         } catch (HttpClientErrorException e) {
-            if (e.getStatusCode() == HttpStatus.UNAUTHORIZED) {
-                return false;
-            }
-            throw e;
-        } catch (NullPointerException e) {
-            System.err.println("Error while processing authorization header: " + e.getMessage());
-            return false;
+            return e.getStatusCode();
         }
     }
 

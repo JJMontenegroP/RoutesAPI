@@ -20,8 +20,8 @@ public class SecurityConfig {
                 .authorizeHttpRequests(request -> request.requestMatchers("/routes/ping", "/routes/reset").permitAll())
                 .addFilterBefore(uuidAuthorizationFilter(), UsernamePasswordAuthenticationFilter.class)
                 .authorizeHttpRequests(request -> {
-            request.requestMatchers("/routes", "/routes/","/routes/*").hasAnyAuthority("UUID_AUTHORITY");
-        }).build();
+                    request.requestMatchers("/routes", "/routes/","/routes/*").hasAnyAuthority("UUID_AUTHORITY");
+                }).build();
     }
 
     @Bean
