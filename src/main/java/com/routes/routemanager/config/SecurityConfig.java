@@ -25,7 +25,7 @@ public class SecurityConfig {
     }
 
     @Bean
-    public UUIDAuthorizationFilter uuidAuthorizationFilter() {
-        return new UUIDAuthorizationFilter();
+    public UuidAuthorizationFilter uuidAuthorizationFilter() {
+        return new UuidAuthorizationFilter();
     }
 }
