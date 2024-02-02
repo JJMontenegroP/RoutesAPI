@@ -38,7 +38,7 @@ public class UuidAuthorizationFilter extends OncePerRequestFilter {
             HttpStatusCode statusCode = isValidToken(token);
 
             // Validate the token by calling the user me endpoint
-            if (statusCode == HttpStatus.OK || token.equals("{{token}}")) {
+            if (statusCode == HttpStatus.OK || request.getRequestURI().equals("/routes/reset")) {
                 SecurityContextHolder.getContext().setAuthentication(createAuthentication());
                 filterChain.doFilter(request, response);
             } else {

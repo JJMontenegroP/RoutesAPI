@@ -18,7 +18,7 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .cors(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(request -> request.requestMatchers("/routes/ping", "/routes/reset").permitAll())
-                .addFilterBefore(uuidAuthorizationFilter(), UsernamePasswordAuthenticationFilter.class)
+                .addFilterAfter(uuidAuthorizationFilter(), UsernamePasswordAuthenticationFilter.class)
                 .authorizeHttpRequests(request -> {
                     request.requestMatchers("/routes", "/routes/","/routes/*").hasAnyAuthority("UUID_AUTHORITY");
                 }).build();
