@@ -1,0 +1,38 @@
+version: '3'
+
+services:
+  java_app:
+    container_name: java_app
+    image: routes-java-app:1.0-0
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "3002:3002"
+    networks:
+        - routes_network
+    environment:
+      - DATABASE_URL=jdbc:postgresql://routes_db:5432/routes
+      - DATABASE_USER=postgres
+      - DATABASE_PASSWORD=postgres
+      - PORT=3002
+    depends_on:
+      - routes_db
+
+  routes_db:
+    image: postgres:13
+    ports:
+      - "5433:5432"
+    environment:
+      - POSTGRES_DB=routes
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    volumes:
+      - java_db_data:/var/lib/postgresql/data
+    networks:
+        - routes_network
+volumes:
+  java_db_data:
+
+networks:
+  routes_network:

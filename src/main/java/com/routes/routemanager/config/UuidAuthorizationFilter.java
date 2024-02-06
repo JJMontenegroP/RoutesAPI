@@ -3,6 +3,7 @@ package com.routes.routemanager.config;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -19,7 +20,9 @@ public class UuidAuthorizationFilter extends OncePerRequestFilter {
     private static final String AUTHORIZATION_HEADER = "Authorization";
     private static final String BEARER_PREFIX = "Bearer ";
     private static final String UUID_AUTHORITY = "UUID_AUTHORITY";
-    private static final String USER_ME_ENDPOINT = "http://localhost:3000/users/me";
+
+    @Value("${user.me.endpoint}")
+    private String userMeEndpoint;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws jakarta.servlet.ServletException, IOException {
@@ -61,7 +64,7 @@ public class UuidAuthorizationFilter extends OncePerRequestFilter {
             HttpHeaders headers = new HttpHeaders();
             headers.setBearerAuth(token);
             HttpEntity<String> entity = new HttpEntity<>(headers);
-            ResponseEntity<String> response = restTemplate.exchange(USER_ME_ENDPOINT, HttpMethod.GET, entity, String.class);
+            ResponseEntity<String> response = restTemplate.exchange(userMeEndpoint, HttpMethod.GET, entity, String.class);
             String responseBody = response.getBody();
             System.out.println("Response Body: " + responseBody);
             return response.getStatusCode();
